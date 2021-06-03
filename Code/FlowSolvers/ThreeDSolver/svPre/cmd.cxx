@@ -83,6 +83,12 @@ static Cmd cmd_table[] = {
   {"set_surface_p0", cmd_set_p0vw_BCs},
   /*********************************************************************/
 
+  /********* ANISOTROPIC ELS JUNE 2021 *********************************/
+  {"set_surface_c11", cmd_set_c11_BCs},
+  {"set_surface_c12", cmd_set_c12_BCs},
+  {"set_surface_c44", cmd_set_c44_BCs},
+  /*********************************************************************/
+
   {"set_surface_initial_Evw", cmd_set_Initial_Evw},
   {"varwallprop_write_vtk", cmd_varwallprop_write_vtk},
 #endif
@@ -131,6 +137,12 @@ static Cmd cmd_table[] = {
   {"set_surface_p0_vtp", cmd_set_p0vw_BCs_vtp},
 /*********************************************************************/
 
+  /********* ANISOTROPIC ELS JUNE 2021 *********************************/
+  {"set_surface_c11_vtp", cmd_set_c11_BCs_vtp},
+  {"set_surface_c12_vtp", cmd_set_c12_BCs_vtp},
+  {"set_surface_c44_vtp", cmd_set_c44_BCs_vtp},
+  /*********************************************************************/
+
   {"set_surface_initial_E_vtp", cmd_set_Initial_Evw_vtp},
   {"solve_varwall_thickness",cmd_Laplace_Thickness},
   {"solve_varwall_E",cmd_Laplace_Evw},
@@ -139,6 +151,12 @@ static Cmd cmd_table[] = {
   {"solve_varwall_ks", cmd_Laplace_Ksvw},
   {"solve_varwall_cs", cmd_Laplace_Csvw},
   {"solve_varwall_p0", cmd_Laplace_P0vw},
+  /*********************************************************************/
+
+  /********* ANISOTROPIC ELS JUNE 2021 *********************************/
+  {"solve_varwall_c11", cmd_Laplace_c11},
+  {"solve_varwall_c12", cmd_Laplace_c12},
+  {"solve_varwall_c44", cmd_Laplace_c44},
   /*********************************************************************/
 
   {"solve_transient_varwall_E",cmd_Transient_Laplace_Evw},

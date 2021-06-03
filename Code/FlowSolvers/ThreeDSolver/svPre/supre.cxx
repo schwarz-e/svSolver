@@ -99,6 +99,10 @@ double* KsvwSolution_        = NULL;
 double* CsvwSolution_        = NULL;
 double* P0vwSolution_        = NULL;
 int itissuesuppt             = 0;
+double* C11Solution_        = NULL;
+double* C12Solution_        = NULL;
+double* C44Solution_        = NULL;
+int anisotropic             = 0;
 #endif
 
 double  Displacement_Evw_        = 0;

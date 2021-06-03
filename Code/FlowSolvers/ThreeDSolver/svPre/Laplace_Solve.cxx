@@ -52,6 +52,10 @@ extern double* EvwSolution_;
 extern double* KsvwSolution_;
 extern double* CsvwSolution_;
 extern double* P0vwSolution_;
+/* ANISOTROPIC - ELS JUNE 2021 */
+extern double* C11Solution_;
+extern double* C12Solution_;
+extern double* C44Solution_;
 
 extern char buffer_[MAXCMDLINELENGTH];
 extern int* iBC_;
@@ -514,12 +518,18 @@ int calcWallPropDistribution(int Laplacetype) {
         KsvwSolution_ = WallPropSolution_;
     } else if (Laplacetype == 3) {
         CsvwSolution_ = WallPropSolution_;
-    } else {
+    } else if (Laplacetype == 4) {
         P0vwSolution_ = WallPropSolution_;
+    } else if (Laplacetype == 5) {
+        /*  ANISOTROPIC - ELS June 2021  */
+        C11Solution_ = WallPropSolution_;
+    } else if (Laplacetype == 6) {
+        C12Solution_ = WallPropSolution_;
+    } else {
+        C44Solution_ = WallPropSolution_;
     }
-    WallPropSolution_ = NULL;
 
-    /* =========================================================================================== */
+    WallPropSolution_ = NULL;
 
 
     //  printf("delete Fglobal\n ");

@@ -150,7 +150,12 @@ extern double* KsvwSolution_;
 extern double* CsvwSolution_;
 extern double* P0vwSolution_;
 extern int itissuesuppt;
+extern double* C11Solution_;
+extern double* C12Solution_;
+extern double* C44Solution_;
+extern int anisotropic;
 #endif
+
 
 extern double  Displacement_Evw_;
 extern double  Displacement_nuvw_;
@@ -1015,6 +1020,25 @@ int cmd_set_p0vw_BCs(char *cmd){
     return cmd_set_scalar_BCs(cmd);
 }
 
+/********* ANISOTROPIC ELS JUNE 2021 ***********/
+
+// SET TISSUE SUPPORT SPRING CONSTANT BC
+int cmd_set_c11_BCs(char *cmd){
+    return cmd_set_scalar_BCs(cmd);
+}
+
+// SET TISSUE SUPPORT DAMPING CONSTANT BC
+int cmd_set_c12_BCs(char *cmd){
+    return cmd_set_scalar_BCs(cmd);
+}
+
+// SET TISSUE SUPPORT EXTERNAL PRESSURE BC
+int cmd_set_c44_BCs(char *cmd){
+    return cmd_set_scalar_BCs(cmd);
+}
+
+/***********************************************/
+
 int cmd_set_scalar_BCs(char *cmd) {
 
     // enter
@@ -1155,6 +1179,67 @@ int cmd_Laplace_P0vw(char *cmd) {
     debugprint(stddbg,"Exiting cmd_Laplace_P0vw.\n");
     return CV_OK;
 }
+
+
+/********* ANISOTROPIC ELS JUNE 2021 *********/
+// SOLVE LAPLACE EQUATION WITH C11
+int cmd_Laplace_c11(char *cmd) {
+
+    // enter
+    debugprint(stddbg,"Entering cmd_Laplace_c11.\n");
+
+    if (C11Solution_ == NULL) {
+      WallPropSolution_ = new double [numNodes_];
+    }
+
+    int Laplacetype  = 5; // C11
+    calcWallPropDistribution(Laplacetype);
+    anisotropic = 1;
+
+    // cleanup
+    debugprint(stddbg,"Exiting cmd_Laplace_c11.\n");
+    return CV_OK;
+}
+
+// SOLVE LAPLACE EQUATION WITH C12
+int cmd_Laplace_c12(char *cmd) {
+
+    // enter
+    debugprint(stddbg,"Entering cmd_Laplace_c12.\n");
+
+    if (C12Solution_ == NULL) {
+        WallPropSolution_ = new double [numNodes_];
+    }
+
+    int Laplacetype  = 6; // C12
+    calcWallPropDistribution(Laplacetype);
+    anisotropic = 1;
+
+    // cleanup
+    debugprint(stddbg,"Exiting cmd_Laplace_c12.\n");
+    return CV_OK;
+}
+
+// SOLVE LAPLACE EQUATION WITH C44
+int cmd_Laplace_c44(char *cmd) {
+
+    // enter
+    debugprint(stddbg,"Entering cmd_Laplace_c44.\n");
+
+    if (C44Solution_ == NULL) {
+        WallPropSolution_ = new double [numNodes_];
+    }
+
+    int Laplacetype  = 7; // C44
+    calcWallPropDistribution(Laplacetype);
+    anisotropic = 1;
+
+    // cleanup
+    debugprint(stddbg,"Exiting cmd_Laplace_c44.\n");
+    return CV_OK;
+}
+/*********************************************/
+
 
 
 int cmd_set_Initial_Evw(char *cmd) {
@@ -1339,7 +1424,12 @@ int append_varwallprop_to_file(char *filename) {
 
   // Thickness, Evw, Ksvw, Csvw, P0vw
   if (wallpropsoln_ == NULL) {
-    if (itissuesuppt) {
+    /********* ANISOTROPIC ELS JUNE 2021 *************/
+    if (itissuesuppt && anisotropic) {
+        nsd = 8;
+    } else if (itissuesuppt) {
+        nsd = 5;
+    } else if (anisotropic) {
         nsd = 5;
     } else {
         nsd = 2;
@@ -1360,14 +1450,30 @@ int append_varwallprop_to_file(char *filename) {
   // stick in displacements
   for (i = 0; i < DisplacementNumNodes_; i++) {
     int nid = DisplacementNodeMap_[i];
+    /********* ANISOTROPIC ELS JUNE 2021 *************/
+    //Add property indexing
+    int prop_ind = 0;
 
-    wallpropsoln_[numNodes_*0+nid-1] = ThicknessSolution_[nid-1];
-    wallpropsoln_[numNodes_*1+nid-1] = EvwSolution_[nid-1];
+    wallpropsoln_[numNodes_*prop_ind+nid-1] = ThicknessSolution_[nid-1];
+    prop_ind++;
+    wallpropsoln_[numNodes_*prop_ind+nid-1] = EvwSolution_[nid-1];
+    prop_ind++;
 
     if (itissuesuppt) {
-        wallpropsoln_[numNodes_*2+nid-1] = KsvwSolution_[nid-1];
-        wallpropsoln_[numNodes_*3+nid-1] = CsvwSolution_[nid-1];
-        wallpropsoln_[numNodes_*4+nid-1] = P0vwSolution_[nid-1];
+        wallpropsoln_[numNodes_*prop_ind+nid-1] = KsvwSolution_[nid-1];
+        prop_ind++;
+        wallpropsoln_[numNodes_*prop_ind+nid-1] = CsvwSolution_[nid-1];
+        prop_ind++;
+        wallpropsoln_[numNodes_*prop_ind+nid-1] = P0vwSolution_[nid-1];
+        prop_ind++;
+    }
+    if (anisotropic) {
+        wallpropsoln_[numNodes_*prop_ind+nid-1] = C11Solution_[nid-1];
+        prop_ind++;
+        wallpropsoln_[numNodes_*prop_ind+nid-1] = C12Solution_[nid-1];
+        prop_ind++;
+        wallpropsoln_[numNodes_*prop_ind+nid-1] = C44Solution_[nid-1];
+        prop_ind++;
     }
   }
 
@@ -1627,6 +1733,42 @@ int cmd_varwallprop_write_vtk(char *cmd) {
             for (i = 0; i < numNodes_; i++) {
 
                scalarval=P0vwSolution_[i];
+              // printf("%lf\n",scalarval);
+                fprintf(fp,"%lf\n",scalarval);
+            }
+        }
+    }
+
+    /* ANISOTROPIC - ELS JUNE 2021 */
+    if (anisotropic) {
+        if (C11Solution_ != NULL) {
+            fprintf(fp,"SCALARS C11 double\n");
+            fprintf(fp,"LOOKUP_TABLE default\n");
+            for (i = 0; i < numNodes_; i++) {
+
+               scalarval=C11Solution_[i];
+              // printf("%lf\n",scalarval);
+                fprintf(fp,"%lf\n",scalarval);
+            }
+        }
+
+        if (C12Solution_ != NULL) {
+            fprintf(fp,"SCALARS C12 double\n");
+            fprintf(fp,"LOOKUP_TABLE default\n");
+            for (i = 0; i < numNodes_; i++) {
+
+               scalarval=C11Solution_[i];
+              // printf("%lf\n",scalarval);
+                fprintf(fp,"%lf\n",scalarval);
+            }
+        }
+
+        if (C44Solution_ != NULL) {
+            fprintf(fp,"SCALARS C44 double\n");
+            fprintf(fp,"LOOKUP_TABLE default\n");
+            for (i = 0; i < numNodes_; i++) {
+
+               scalarval=C11Solution_[i];
               // printf("%lf\n",scalarval);
                 fprintf(fp,"%lf\n",scalarval);
             }

@@ -102,6 +102,10 @@ extern double* KsvwSolution_;
 extern double* CsvwSolution_;
 extern double* P0vwSolution_;
 extern int itissuesuppt;
+extern double* C11Solution_;
+extern double* C12Solution_;
+extern double* C44Solution_;
+extern int anisotropic;
 #endif
 
 int writeGEOMBCDAT(char* filename);
@@ -979,7 +983,12 @@ int read_variables_vtu(char* vtufn,string presName, string velName, string dispN
         vtkDataArray* wpArray= ug->GetPointData()->GetArray(wpArrayName.c_str());
 
         int numWallProp;
-        if (itissuesuppt) {
+
+        if (itissuesuppt && anisotropic) {
+            numWallProp = 8;
+        } else if (itissuesuppt) {
+            numWallProp = 5;
+        } else if (anisotropic) {
             numWallProp = 5;
         } else {
             numWallProp = 2;
@@ -990,18 +999,26 @@ int read_variables_vtu(char* vtufn,string presName, string velName, string dispN
         double* wp;
 
         for (int i = 0; i < numNodes_; i++) {
-
+ 
             nodeID = nodeIDArray->GetTuple1(i);
 
             /* EXTERNAL TISSUE SUPPORT - ISL JULY 2019 */
+            /* ANISOTROPIC- ELS JUNE 2021 */
             wp = wpArray->GetTuple6(i);
 
             for (int j = 0; j < numWallProp; j++) {
                 wallpropsoln_[j * numNodes_ + nodeID - 1] = wp[j];
             }
 
-            if (itissuesuppt) {
+
+            if (itissuesuppt && anisotropic) {
+                debugprint(stddbg, "  Node (%i) (thickness,Evw,ksvw,csvw,p0vw,c11,c12,c44) : %lf %lf %lf %lf %lf %lf %lf %lf\n",
+                    nodeID, wp[0], wp[1], wp[2], wp[3], wp[4], wp[5], wp[6], wp[7]);
+            } else if (itissuesuppt) {
                 debugprint(stddbg, "  Node (%i) (thickness,Evw,ksvw,csvw,p0vw) : %lf %lf %lf %lf %lf\n",
+                    nodeID, wp[0], wp[1], wp[2], wp[3], wp[4]);
+            } else if (anisotropic) {
+                debugprint(stddbg, "  Node (%i) (thickness,Evw,c11,c12,c44) : %lf %lf %lf %lf %lf\n",
                     nodeID, wp[0], wp[1], wp[2], wp[3], wp[4]);
             } else {
                 debugprint(stddbg, "  Node (%i) (thickness,Evw) : %lf %lf\n",
@@ -2209,6 +2226,23 @@ int cmd_set_p0vw_BCs_vtp(char *cmd){
     return cmd_set_scalar_BCs_vtp(cmd);
 }
 
+/* ANISOTROPIC - ELS June 2021 */
+// SET C11 BC
+int cmd_set_c11_BCs_vtp(char *cmd){
+    return cmd_set_scalar_BCs_vtp(cmd);
+}
+
+// SET C12 BC
+int cmd_set_c12_BCs_vtp(char *cmd){
+    return cmd_set_scalar_BCs_vtp(cmd);
+}
+
+// SET C44 BC
+int cmd_set_c44_BCs_vtp(char *cmd){
+    return cmd_set_scalar_BCs_vtp(cmd);
+}
+
+
 
 int cmd_set_Initial_Evw_vtp(char *cmd) {
 
@@ -2381,6 +2415,56 @@ int cmd_varwallprop_write_vtp(char *cmd) {
             grid->GetPointData()->AddArray(p0vw);
 
             p0vw->Delete();
+        }
+    }
+    
+    /* --------------------------------------------------- */
+
+    // /* ANISOTROPIC - ESL JUNE 2021 */
+    if (anisotropic) {
+        if (C11Solution_ != NULL) {
+            vtkDoubleArray *c11 = vtkDoubleArray::New();
+            c11->SetNumberOfComponents(1);
+            c11->Allocate(numNodes_,10000);
+            c11->SetNumberOfTuples(numNodes_);
+            c11->SetName("C11");
+            for(i = 0; i < numNodes_; i++){
+                c11->SetTuple1(i,C11Solution_[i]);
+            }
+
+            grid->GetPointData()->AddArray(c11);
+
+            c11->Delete();
+        }
+
+        if (C12Solution_ != NULL) {
+            vtkDoubleArray *c12 = vtkDoubleArray::New();
+            c12->SetNumberOfComponents(1);
+            c12->Allocate(numNodes_,10000);
+            c12->SetNumberOfTuples(numNodes_);
+            c12->SetName("C12");
+            for(i = 0; i < numNodes_; i++){
+                c12->SetTuple1(i,C12Solution_[i]);
+            }
+
+            grid->GetPointData()->AddArray(c12);
+
+            c12->Delete();
+        }
+
+        if (C44Solution_ != NULL) {
+            vtkDoubleArray *c44 = vtkDoubleArray::New();
+            c44->SetNumberOfComponents(1);
+            c44->Allocate(numNodes_,10000);
+            c44->SetNumberOfTuples(numNodes_);
+            c44->SetName("C44");
+            for(i = 0; i < numNodes_; i++){
+                c44->SetTuple1(i,C44Solution_[i]);
+            }
+
+            grid->GetPointData()->AddArray(c44);
+
+            c44->Delete();
         }
     }
     

@@ -209,6 +209,13 @@ int CALLTYPE cmd_Laplace_Csvw(char*);
 int CALLTYPE cmd_Laplace_P0vw(char*);
 /***********************************************/
 
+
+/*** ANISOTROPIC - ELS June 2021 ***************/
+int CALLTYPE cmd_Laplace_c11(char*);
+int CALLTYPE cmd_Laplace_c12(char*);
+int CALLTYPE cmd_Laplace_c44(char*);
+/***********************************************/
+
 int CALLTYPE cmd_Transient_Laplace_Evw(char*);
 int CALLTYPE cmd_set_scalar_BCs(char*);
 int CALLTYPE cmd_set_thickness_BCs(char*);
@@ -223,6 +230,16 @@ int CALLTYPE cmd_set_csvw_BCs(char*);
 int CALLTYPE cmd_set_csvw_BCs_vtp(char*);
 int CALLTYPE cmd_set_p0vw_BCs(char*);
 int CALLTYPE cmd_set_p0vw_BCs_vtp(char*);
+/***********************************************/
+
+
+/*** ANISOTROPIC - ELS June 2021 ***************/
+int CALLTYPE cmd_set_c11_BCs(char*);
+int CALLTYPE cmd_set_c12_BCs(char*);
+int CALLTYPE cmd_set_c44_BCs(char*);
+int CALLTYPE cmd_set_c11_BCs_vtp(char*);
+int CALLTYPE cmd_set_c12_BCs_vtp(char*);
+int CALLTYPE cmd_set_c44_BCs_vtp(char*);
 /***********************************************/
 
 int CALLTYPE cmd_set_Initial_Evw(char*);
