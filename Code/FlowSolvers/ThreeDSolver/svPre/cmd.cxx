@@ -121,6 +121,11 @@ static Cmd cmd_table[] = {
   {"deformable_thickness",cmd_deformable_thickness},
   {"deformable_pressure",cmd_deformable_pressure},
   {"deformable_kcons",cmd_deformable_kcons},
+/*** ANISOTROPIC - ELS June 2021 ***************/
+  {"deformable_c11",cmd_deformable_c11},
+  {"deformable_c12",cmd_deformable_c12},
+  {"deformable_c44",cmd_deformable_c44},
+
   {"deformable_direct_solve_displacements", cmd_deformable_direct_solve},
   {"deformable_solve_displacements", cmd_deformable_iterative_solve},
   {"wall_displacements_write_vtp", cmd_wall_displacements_write_vtp},

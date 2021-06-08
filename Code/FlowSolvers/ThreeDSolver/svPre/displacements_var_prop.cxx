@@ -64,17 +64,21 @@ extern int*  DisplacementNodeMap_;
 extern double* DisplacementSolution_;
 extern double* ThicknessSolution_;
 extern double* EvwSolution_;
+extern double* C11Solution_;
+extern double* C12Solution_;
+extern double* C44Solution_;
 extern int* iBC_;
 extern int numNodes_;
 extern double* nodes_;
 
 
-
+/*------------ ANISOTROPIC - ELS JUNE 2021 -------------------- */
 
 int stiffnessmatrix(double Evw,double nuvw,
                     double thickness,double pressure,double kcons,
                     double x1[3],double x2[3],double x3[3],
-                    double Kglobal9[9][9], double fglobal9[9]) ;
+                    double Kglobal9[9][9], double fglobal9[9],
+                    int anisotropic_flag = 0, double c11 = 0.0, double c12 = 0.0, double c44 = 0.0) ;
 
 void siftDownKentries(Kentry Kentries[], int root, int bottom, int array_size);
 
@@ -108,10 +112,12 @@ int StanfordIterativeSolve(Kentry* Kentries,double *b,
 
 
 
+/*------------ ANISOTROPIC - ELS JUNE 2021 -------------------- */
 
 int calcInitDisplacements_var_prop(double Evw,double nuvw,
                           double thickness,double pressure,double kcons,
-                          int use_direct_solve) {
+                          int use_direct_solve, int anisotropic_flag = 0,
+                          double c11 = 0.0, double c12 = 0.0, double c44 = 0.0) {
 
   int nsdim = 3;
   int nnode = 3;
@@ -157,6 +163,9 @@ int calcInitDisplacements_var_prop(double Evw,double nuvw,
   double x[3][3];
   double Evw_nodal[3];
   double thickness_nodal[3];
+  double c11_nodal[3];
+  double c12_nodal[3];
+  double c44_nodal[3];
 
   //matlab % Loop over the elements
 
@@ -179,6 +188,11 @@ int calcInitDisplacements_var_prop(double Evw,double nuvw,
       x[i][2] = nodes_[2*numNodes_+j-1];
       Evw_nodal[i]=EvwSolution_[j];
       thickness_nodal[i]=ThicknessSolution_[j];
+      if (anisotropic_flag) {
+        c11_nodal[i]=C11Solution_[j];
+        c12_nodal[i]=C12Solution_[j];
+        c44_nodal[i]=C44Solution_[j];
+      }
     }
 
 
@@ -187,9 +201,16 @@ int calcInitDisplacements_var_prop(double Evw,double nuvw,
 
      Evw=(Evw_nodal[0]+Evw_nodal[1]+Evw_nodal[2])/3.0;
      thickness=(thickness_nodal[0]+thickness_nodal[1]+thickness_nodal[2])/3.0;
+     c11=(c11_nodal[0]+c11_nodal[1]+c11_nodal[2])/3.0;
+     c12=(c12_nodal[0]+c12_nodal[1]+c12_nodal[2])/3.0;
+     c44=(c44_nodal[0]+c44_nodal[1]+c44_nodal[2])/3.0;
 
-
-    stiffnessmatrix(Evw,nuvw,thickness,pressure,kcons,x[0],x[1],x[2],Kglobal9,fglobal9);
+    if (anisotropic_flag) {
+      stiffnessmatrix(Evw,nuvw,thickness,pressure,kcons,x[0],x[1],x[2],Kglobal9,fglobal9,anisotropic_flag,c11,c12,c44);
+    }
+    else {
+      stiffnessmatrix(Evw,nuvw,thickness,pressure,kcons,x[0],x[1],x[2],Kglobal9,fglobal9);
+    }
 
 #ifdef REALLY_OUTPUT_A_WHOLE_BUNCH
   fprintf(stdout,"\n");

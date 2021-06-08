@@ -176,6 +176,11 @@ int CALLTYPE cmd_deformable_thickness(char*);
 int CALLTYPE cmd_deformable_pressure(char*);
 int CALLTYPE cmd_deformable_kcons(char*);
 
+/*** ANISOTROPIC - ELS June 2021 ***************/
+int CALLTYPE cmd_deformable_c11(char*);
+int CALLTYPE cmd_deformable_c12(char*);
+int CALLTYPE cmd_deformable_c44(char*);
+
 //
 // read from solver formatted files
 //

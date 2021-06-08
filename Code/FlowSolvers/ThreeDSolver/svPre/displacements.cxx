@@ -146,10 +146,14 @@ void Mat3Vec( double mat[3][3],double v[3],double *prodx, double *prody, double 
 
 //matlab function [Kglobal9,fglobal9] = stiffnessmatrix(r,L,Evw,nuvw,thickness,pressure,kcons,x1,x2,x3)
 
+/*------------ ANISOTROPIC - ELS JUNE 2021 -------------------- */
+
 int stiffnessmatrix(double Evw,double nuvw,
                     double thickness,double pressure,double kcons,
                     double x1[3],double x2[3],double x3[3],
-                    double Kglobal9[9][9], double fglobal9[9]) {
+                    double Kglobal9[9][9], double fglobal9[9],
+                    int anisotropic_flag = 0, double c11 = 0.0,
+                    double c12 = 0.0, double c44 = 0.0) {
 
   //matlab format short;
 
@@ -217,13 +221,11 @@ int stiffnessmatrix(double Evw,double nuvw,
   detjacrot = (x2rot[0]-x1rot[0]) * (x3rot[1]-x1rot[1]) - (x3rot[0]-x1rot[0])*(x2rot[1]-x1rot[1]);
   area = detjacrot/2;
 
-#ifdef REALLY_OUTPUT_A_WHOLE_BUNCH
   fprintf(stdout,"x1rot: %lf %lf %lf\n",x1rot[0],x1rot[1],x1rot[2]);
   fprintf(stdout,"x2rot: %lf %lf %lf\n",x2rot[0],x2rot[1],x2rot[2]);
   fprintf(stdout,"x3rot: %lf %lf %lf\n",x3rot[0],x3rot[1],x3rot[2]);
   fprintf(stdout,"detjacrot: %lf\n",detjacrot);
   fprintf(stdout,"area: %lf\n",area);
-#endif
 
   //matlab % B matrix
   //matlab Bmatrix = zeros(5,9);
@@ -664,7 +666,8 @@ int StanfordIterativeSolve(Kentry* Kentries,double *b,
 
 int calcInitDisplacements(double Evw,double nuvw,
                           double thickness,double pressure,double kcons,
-                          int use_direct_solve) {
+                          int use_direct_solve, int anisotropic_flag = 0,
+                          double c11 = 0.0, double c12 = 0.0, double c44 = 0.0) {
 
   int nsdim = 3;
   int nnode = 3;
@@ -733,7 +736,13 @@ int calcInitDisplacements(double Evw,double nuvw,
     //matlab % Compute the element's stiffness and force vector
     //matlab [Kglobal9,fglobal9] = stiffnessmatrix(r,L,Evw,nuvw,thickness,pressure,kcons,x1,x2,x3);
 
-    stiffnessmatrix(Evw,nuvw,thickness,pressure,kcons,x[0],x[1],x[2],Kglobal9,fglobal9);
+    if (anisotropic_flag) {
+      stiffnessmatrix(Evw,nuvw,thickness,pressure,kcons,x[0],x[1],x[2],Kglobal9,fglobal9,anisotropic_flag,c11,c12,c44);
+    }
+    else {
+      stiffnessmatrix(Evw,nuvw,thickness,pressure,kcons,x[0],x[1],x[2],Kglobal9,fglobal9);
+    }
+
 
 #ifdef REALLY_OUTPUT_A_WHOLE_BUNCH
   fprintf(stdout,"\n");

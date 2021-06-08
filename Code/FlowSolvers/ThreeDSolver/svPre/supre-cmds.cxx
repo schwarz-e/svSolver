@@ -162,6 +162,9 @@ extern double  Displacement_nuvw_;
 extern double  Displacement_thickness_;
 extern double  Displacement_kcons_;
 extern double  Displacement_pressure_;
+extern double  Displacement_c11_;
+extern double  Displacement_c12_;
+extern double  Displacement_c44_;
 
 int writeGEOMBCDAT(char* filename);
 int writeRESTARTDAT(char* filename);
@@ -881,10 +884,76 @@ int cmd_deformable_pressure(char *cmd) {
 
 }
 
+/********* ANISOTROPIC ELS JUNE 2021 ***********/
+int cmd_deformable_c11(char *cmd) {
+
+    // enter
+    debugprint(stddbg,"Entering cmd_deformable_c11.\n");
+
+    // do work
+    double value = 0;
+    Displacement_c11_ = 0.0;
+    if (parseDouble(cmd, &value) == CV_ERROR) {
+        return CV_ERROR;
+    }
+    Displacement_c11_ = value;
+    debugprint(stddbg,"  c11 = %lf\n",Displacement_c11_);
+
+    // cleanup
+    debugprint(stddbg,"Exiting cmd_deformable_c11.\n");
+    return CV_OK;
+
+}
+int cmd_deformable_c12(char *cmd) {
+
+    // enter
+    debugprint(stddbg,"Entering cmd_deformable_c12.\n");
+
+    // do work
+    double value = 0;
+    Displacement_c12_ = 0.0;
+    if (parseDouble(cmd, &value) == CV_ERROR) {
+        return CV_ERROR;
+    }
+    Displacement_c12_ = value;
+    debugprint(stddbg,"  c12 = %lf\n",Displacement_c12_);
+
+    // cleanup
+    debugprint(stddbg,"Exiting cmd_deformable_c12.\n");
+    return CV_OK;
+
+}
+
+int cmd_deformable_c44(char *cmd) {
+
+    // enter
+    debugprint(stddbg,"Entering cmd_deformable_c44.\n");
+
+    // do work
+    double value = 0;
+    Displacement_c44_ = 0.0;
+    if (parseDouble(cmd, &value) == CV_ERROR) {
+        return CV_ERROR;
+    }
+    Displacement_c11_ = value;
+    debugprint(stddbg,"  c44 = %lf\n",Displacement_c44_);
+
+    // cleanup
+    debugprint(stddbg,"Exiting cmd_deformable_c44.\n");
+    return CV_OK;
+
+}
+
+
+
 int calcInitDisplacements(double Evw,double nuvw,
                           double thickness,double pressure,double kcons,
-                          int use_direct_solve);
+                          int use_direct_solve, int anisotropic_flag = 0,
+                          double c11 = 0.0, double c12 = 0.0, double c44 = 0.0);
 
+
+
+/********* ANISOTROPIC ELS JUNE 2021 ***********/
 int cmd_deformable_solve(char *cmd,int use_direct_solve) {
 
   // enter
@@ -898,12 +967,25 @@ int cmd_deformable_solve(char *cmd,int use_direct_solve) {
   debugprint(stddbg,"    kcons             = %lf\n",Displacement_kcons_);
   debugprint(stddbg,"    pressure          = %lf\n",Displacement_pressure_);
 
-  calcInitDisplacements(Displacement_Evw_,
-                        Displacement_nuvw_,
-                        Displacement_thickness_,
-                        Displacement_pressure_,
-                        Displacement_kcons_,
-                        use_direct_solve);
+  if (anisotropic){
+      calcInitDisplacements(Displacement_Evw_,
+                            Displacement_nuvw_,
+                            Displacement_thickness_,
+                            Displacement_pressure_,
+                            Displacement_kcons_,
+                            use_direct_solve, anisotropic,
+                            Displacement_c11_,
+                            Displacement_c12_,
+                            Displacement_c44_);
+  }
+  else {
+      calcInitDisplacements(Displacement_Evw_,
+                            Displacement_nuvw_,
+                            Displacement_thickness_,
+                            Displacement_pressure_,
+                            Displacement_kcons_,
+                            use_direct_solve);
+  }
 
   int i,size,nsd,nshg;
 
@@ -939,7 +1021,8 @@ int cmd_deformable_solve(char *cmd,int use_direct_solve) {
 #if(VER_VARWALL == 1)
 int calcInitDisplacements_var_prop(double Evw,double nuvw,
                           double thickness,double pressure,double kcons,
-                          int use_direct_solve);
+                          int use_direct_solve, int anisotropic_flag = 0,
+                          double c11 = 0.0, double c12 = 0.0, double c44 = 0.0);
 
 int cmd_deformable_solve_var_prop(char *cmd,int use_direct_solve) {
 
@@ -954,12 +1037,27 @@ int cmd_deformable_solve_var_prop(char *cmd,int use_direct_solve) {
   debugprint(stddbg,"    kcons             = %lf\n",Displacement_kcons_);
   debugprint(stddbg,"    pressure          = %lf\n",Displacement_pressure_);
 
-  calcInitDisplacements_var_prop(Displacement_Evw_,
-                        Displacement_nuvw_,
-                        Displacement_thickness_,
-                        Displacement_pressure_,
-                        Displacement_kcons_,
-                        use_direct_solve);
+
+/********* ANISOTROPIC ELS JUNE 2021 ***********/
+  if (anisotropic){
+      calcInitDisplacements_var_prop(Displacement_Evw_,
+                            Displacement_nuvw_,
+                            Displacement_thickness_,
+                            Displacement_pressure_,
+                            Displacement_kcons_,
+                            use_direct_solve, anisotropic,
+                            Displacement_c11_,
+                            Displacement_c12_,
+                            Displacement_c44_);
+  }
+  else {
+      calcInitDisplacements_var_prop(Displacement_Evw_,
+                            Displacement_nuvw_,
+                            Displacement_thickness_,
+                            Displacement_pressure_,
+                            Displacement_kcons_,
+                            use_direct_solve);
+  }
 
   int i,size,nsd,nshg;
 

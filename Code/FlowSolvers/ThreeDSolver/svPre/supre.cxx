@@ -111,6 +111,11 @@ double  Displacement_thickness_  = 0;
 double  Displacement_kcons_      = 0;
 double  Displacement_pressure_   = 0;
 
+/********* ANISOTROPIC ELS JUNE 2021 ***********/
+double  Displacement_c11_   = 0;
+double  Displacement_c12_   = 0;
+double  Displacement_c44_   = 0;
+
 double rho_=0.0;
 double mu_=0.0;
 int bctShape_=0;
